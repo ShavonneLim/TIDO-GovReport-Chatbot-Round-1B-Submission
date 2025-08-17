@@ -486,12 +486,6 @@
             </a>
         </div>
         <div class="main-chat">
-            <!-- <div class="chat-header">
-                <div class="chat-title-wrapper">
-                    <h2 class="chat-title">GovReport</h2>
-                </div>
-            </div> -->
-            
             <div class="messages-container" id="messagesContainer">
                 <div class="welcome-message">
                     <h2>👋 Welcome to GovReport!</h2>
@@ -510,25 +504,9 @@
             
             <div class="message-input-container">
                 <div class="message-input-wrapper">
-                    <textarea 
-                        id="messageInput" 
-                        class="message-input" 
-                        placeholder="Type your message..."
-                        rows="1"
-                    ></textarea>
-                    
-                    <input type="file" id="imageInput" accept="image/*" style="display: none;">
-                    <button id="uploadButton" class="upload-button glossy" title="Upload Image">
-                        📷
-                    </button>
-                    <button id="audioButton" class="audio-button glossy" title="Record Voice">
-                        🎙️
-                    </button>
-                    
-                    <button id="sendButton" class="send-button glossy">
-                        ➤
-                    </button>
-                </div>
+                    <input type="text" class="message-input" value="Can't click me" disabled>
+
+                    </div>
             </div>
         </div>
     </div>
@@ -543,238 +521,298 @@
                 
                 this.initializeElements();
                 this.bindEvents();
-                this.loadMessages();
+                // Comment out original function call to load messages from a backend
+                // this.loadMessages();
+                // Call the new hardcoded chat function
+                this.hardcodeChat();
             }
             
             initializeElements() {
-                this.messageInput = document.getElementById('messageInput');
-                this.sendButton = document.getElementById('sendButton');
+                // Comment out the original messageInput and sendButton
+                // this.messageInput = document.getElementById('messageInput');
+                // this.sendButton = document.getElementById('sendButton');
                 this.messagesContainer = document.getElementById('messagesContainer');
                 this.typingIndicator = document.getElementById('typingIndicator');
-                this.imageInput = document.getElementById('imageInput');
-                this.uploadButton = document.getElementById('uploadButton');
-                this.audioButton = document.getElementById('audioButton');
+                // this.imageInput = document.getElementById('imageInput');
+                // this.uploadButton = document.getElementById('uploadButton');
+                // this.audioButton = document.getElementById('audioButton');
             }
             
             bindEvents() {
-                this.messageInput.addEventListener('input', () => this.autoResize(this.messageInput));
-                this.messageInput.addEventListener('keypress', (e) => this.handleKeyPress(e));
-                this.sendButton.addEventListener('click', () => this.sendMessage());
-                this.uploadButton.addEventListener('click', () => this.imageInput.click());
-                this.imageInput.addEventListener('change', () => this.handleFileUpload());
-                this.audioButton.addEventListener('click', () => this.toggleRecording());
+                // Comment out event listeners for the dynamic chat elements
+                // this.messageInput.addEventListener('input', () => this.autoResize(this.messageInput));
+                // this.messageInput.addEventListener('keypress', (e) => this.handleKeyPress(e));
+                // this.sendButton.addEventListener('click', () => this.sendMessage());
+                // this.uploadButton.addEventListener('click', () => this.imageInput.click());
+                // this.imageInput.addEventListener('change', () => this.handleFileUpload());
+                // this.audioButton.addEventListener('click', () => this.toggleRecording());
             }
             
-            handleKeyPress(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    this.sendMessage();
-                }
-            }
+            // Comment out original chat functions
+            // handleKeyPress(e) {
+            //     if (e.key === 'Enter' && !e.shiftKey) {
+            //         e.preventDefault();
+            //         this.sendMessage();
+            //     }
+            // }
             
-            autoResize(textarea) {
-                textarea.style.height = 'auto';
-                textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-            }
+            // autoResize(textarea) {
+            //     textarea.style.height = 'auto';
+            //     textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+            // }
             
-            async loadMessages() {
-                try {
-                    const response = await fetch('/api/messages');
-                    const messages = await response.json();
-                    this.messages = messages;
-                    this.renderMessages();
-                } catch (error) {
-                    console.error('Error loading messages:', error);
-                }
-            }
+            // async loadMessages() {
+            //     try {
+            //         const response = await fetch('/api/messages');
+            //         const messages = await response.json();
+            //         this.messages = messages;
+            //         this.renderMessages();
+            //     } catch (error) {
+            //         console.error('Error loading messages:', error);
+            //     }
+            // }
             
-    renderMessages() {
-    
-        if (this.messages.length === 0) return;
-    
-    const welcome = this.messagesContainer.querySelector('.welcome-message');
-    if (welcome) {
-        welcome.remove();
-    }
-
-    const filteredMessages = this.messages.filter(msg => {
-        if (msg.type === 'image') {
-            return msg.content.startsWith('/uploads/web_');
-        }
-        if (msg.type === 'audio') {
-            return msg.content.startsWith('/uploads/web_audio_');
-        }
-        return true;
-    });
-    
-    this.messagesContainer.innerHTML = filteredMessages.map(msg => {
-        // Change this line to use an image for the bot avatar
-        const avatar = msg.sender === 'user' ? '👤' : '<img src="/static/GovReport_Icon.png" alt="Bot Icon" class="bot-avatar-image">';
-        const username = msg.sender === 'user' ? 'You' : 'Bot';
-        const time = this.formatTime(msg.timestamp);
-
-        let messageContentHtml;
-        if (msg.type === 'image') {
-            messageContentHtml = `<img src="${msg.content}" class="message-image" alt="Uploaded Image">`;
-        } else if (msg.type === 'audio') {
-            messageContentHtml = `<audio src="${msg.content}" controls class="message-audio"></audio>`;
-        } else {
-            messageContentHtml = `<div class="message-text">${this.escapeHtml(msg.content)}</div>`;
-        }
-
-        return `
-            <div class="message ${msg.sender}">
-                <div class="message-avatar ${msg.sender}">${avatar}</div>
-                <div class="message-content">
-                    <div class="message-header">
-                        <span class="message-username">${username}</span>
-                        <span class="message-time">${time}</span>
-                    </div>
-                    ${messageContentHtml}
-                </div>
-            </div>
-        `;
-    }).join('');
-    
-    this.scrollToBottom();
-}
-            async handleFileUpload() {
-                const file = this.imageInput.files[0];
-                if (!file) return;
-
-                this.sendButton.disabled = true;
-                this.uploadButton.disabled = true;
-                this.audioButton.disabled = true;
-                this.typingIndicator.style.display = 'flex';
-
-                try {
-                    const formData = new FormData();
-                    formData.append('file', file);
-
-                    const response = await fetch('/api/upload', {
-                        method: 'POST',
-                        body: formData,
-                    });
-
-                    if (response.ok) {
-                        this.imageInput.value = '';
-                        this.loadMessages();
-                    }
-                } catch (error) {
-                    console.error('Error uploading image:', error);
-                } finally {
-                    this.sendButton.disabled = false;
-                    this.uploadButton.disabled = false;
-                    this.audioButton.disabled = false;
-                    this.messageInput.focus();
-                    this.typingIndicator.style.display = 'none';
-                }
-            }
-
-            async toggleRecording() {
-                if (this.isRecording) {
-                    this.stopRecording();
-                } else {
-                    await this.startRecording();
-                }
-            }
-
-            async startRecording() {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    this.mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/ogg; codecs=opus' });
-                    this.audioChunks = [];
-
-                    this.mediaRecorder.ondataavailable = (event) => {
-                        this.audioChunks.push(event.data);
-                    };
-
-                    this.mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(this.audioChunks, { type: 'audio/ogg' });
-                        this.sendAudio(audioBlob);
-                        this.audioChunks = [];
-                    };
-
-                    this.mediaRecorder.start();
-                    this.isRecording = true;
-                    this.audioButton.style.backgroundColor = 'red';
-                    console.log('Audio recording started.');
-                } catch (error) {
-                    console.error('Error accessing microphone:', error);
-                    alert("Could not access your microphone. Please ensure you have given permission.");
-                }
-            }
-
-            stopRecording() {
-                if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-                    this.mediaRecorder.stop();
-                    this.isRecording = false;
-                    this.audioButton.style.backgroundColor = '';
-                    console.log('Audio recording stopped.');
-                }
-            }
-
-            async sendAudio(audioBlob) {
-                this.sendButton.disabled = true;
-                this.uploadButton.disabled = true;
-                this.audioButton.disabled = true;
-                this.typingIndicator.style.display = 'flex';
-
-                try {
-                    const formData = new FormData();
-                    formData.append('audio', audioBlob, 'voice_message.ogg');
-
-                    const response = await fetch('/api/audio_upload', {
-                        method: 'POST',
-                        body: formData,
-                    });
-
-                    if (response.ok) {
-                        this.loadMessages();
-                    }
-                } catch (error) {
-                    console.error('Error uploading audio:', error);
-                } finally {
-                    this.sendButton.disabled = false;
-                    this.uploadButton.disabled = false;
-                    this.audioButton.disabled = false;
-                    this.messageInput.focus();
-                    this.typingIndicator.style.display = 'none';
-                }
-            }
+            // renderMessages() {
+            //     if (this.messages.length === 0) return;
             
-            async sendMessage() {
-                const content = this.messageInput.value.trim();
-                if (!content) return;
+            //     const welcome = this.messagesContainer.querySelector('.welcome-message');
+            //     if (welcome) {
+            //         welcome.remove();
+            //     }
+
+            //     const filteredMessages = this.messages.filter(msg => {
+            //         if (msg.type === 'image') {
+            //             return msg.content.startsWith('/uploads/web_');
+            //         }
+            //         if (msg.type === 'audio') {
+            //             return msg.content.startsWith('/uploads/web_audio_');
+            //         }
+            //         return true;
+            //     });
                 
-                this.sendButton.disabled = true;
-                this.uploadButton.disabled = true;
-                this.audioButton.disabled = true;
-                this.typingIndicator.style.display = 'flex';
+            //     this.messagesContainer.innerHTML = filteredMessages.map(msg => {
+            //         const avatar = msg.sender === 'user' ? '👤' : '<img src="/static/GovReport_Icon.png" alt="Bot Icon" class="bot-avatar-image">';
+            //         const username = msg.sender === 'user' ? 'You' : 'Bot';
+            //         const time = this.formatTime(msg.timestamp);
+
+            //         let messageContentHtml;
+            //         if (msg.type === 'image') {
+            //             messageContentHtml = `<img src="${msg.content}" class="message-image" alt="Uploaded Image">`;
+            //         } else if (msg.type === 'audio') {
+            //             messageContentHtml = `<audio src="${msg.content}" controls class="message-audio"></audio>`;
+            //         } else {
+            //             messageContentHtml = `<div class="message-text">${this.escapeHtml(msg.content)}</div>`;
+            //         }
+
+            //         return `
+            //             <div class="message ${msg.sender}">
+            //                 <div class="message-avatar ${msg.sender}">${avatar}</div>
+            //                 <div class="message-content">
+            //                     <div class="message-header">
+            //                         <span class="message-username">${username}</span>
+            //                         <span class="message-time">${time}</span>
+            //                     </div>
+            //                     ${messageContentHtml}
+            //                 </div>
+            //             </div>
+            //         `;
+            //     }).join('');
                 
-                try {
-                    const response = await fetch('/api/messages', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ content: content })
-                    });
+            //     this.scrollToBottom();
+            // }
+            
+            // async handleFileUpload() {
+            //     const file = this.imageInput.files[0];
+            //     if (!file) return;
+
+            //     this.sendButton.disabled = true;
+            //     this.uploadButton.disabled = true;
+            //     this.audioButton.disabled = true;
+            //     this.typingIndicator.style.display = 'flex';
+
+            //     try {
+            //         const formData = new FormData();
+            //         formData.append('file', file);
+
+            //         const response = await fetch('/api/upload', {
+            //             method: 'POST',
+            //             body: formData,
+            //         });
+
+            //         if (response.ok) {
+            //             this.imageInput.value = '';
+            //             this.loadMessages();
+            //         }
+            //     } catch (error) {
+            //         console.error('Error uploading image:', error);
+            //     } finally {
+            //         this.sendButton.disabled = false;
+            //         this.uploadButton.disabled = false;
+            //         this.audioButton.disabled = false;
+            //         this.messageInput.focus();
+            //         this.typingIndicator.style.display = 'none';
+            //     }
+            // }
+
+            // async toggleRecording() {
+            //     if (this.isRecording) {
+            //         this.stopRecording();
+            //     } else {
+            //         await this.startRecording();
+            //     }
+            // }
+
+            // async startRecording() {
+            //     try {
+            //         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            //         this.mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/ogg; codecs=opus' });
+            //         this.audioChunks = [];
+
+            //         this.mediaRecorder.ondataavailable = (event) => {
+            //             this.audioChunks.push(event.data);
+            //         };
+
+            //         this.mediaRecorder.onstop = () => {
+            //             const audioBlob = new Blob(this.audioChunks, { type: 'audio/ogg' });
+            //             this.sendAudio(audioBlob);
+            //             this.audioChunks = [];
+            //         };
+
+            //         this.mediaRecorder.start();
+            //         this.isRecording = true;
+            //         this.audioButton.style.backgroundColor = 'red';
+            //         console.log('Audio recording started.');
+            //     } catch (error) {
+            //         console.error('Error accessing microphone:', error);
+            //         alert("Could not access your microphone. Please ensure you have given permission.");
+            //     }
+            // }
+
+            // stopRecording() {
+            //     if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+            //         this.mediaRecorder.stop();
+            //         this.isRecording = false;
+            //         this.audioButton.style.backgroundColor = '';
+            //         console.log('Audio recording stopped.');
+            //     }
+            // }
+
+            // async sendAudio(audioBlob) {
+            //     this.sendButton.disabled = true;
+            //     this.uploadButton.disabled = true;
+            //     this.audioButton.disabled = true;
+            //     this.typingIndicator.style.display = 'flex';
+
+            //     try {
+            //         const formData = new FormData();
+            //         formData.append('audio', audioBlob, 'voice_message.ogg');
+
+            //         const response = await fetch('/api/audio_upload', {
+            //             method: 'POST',
+            //             body: formData,
+            //         });
+
+            //         if (response.ok) {
+            //             this.loadMessages();
+            //         }
+            //     } catch (error) {
+            //         console.error('Error uploading audio:', error);
+            //     } finally {
+            //         this.sendButton.disabled = false;
+            //         this.uploadButton.disabled = false;
+            //         this.audioButton.disabled = false;
+            //         this.messageInput.focus();
+            //         this.typingIndicator.style.display = 'none';
+            //     }
+            // }
+            
+            // async sendMessage() {
+            //     const content = this.messageInput.value.trim();
+            //     if (!content) return;
+                
+            //     this.sendButton.disabled = true;
+            //     this.uploadButton.disabled = true;
+            //     this.audioButton.disabled = true;
+            //     this.typingIndicator.style.display = 'flex';
+                
+            //     try {
+            //         const response = await fetch('/api/messages', {
+            //             method: 'POST',
+            //             headers: { 'Content-Type': 'application/json' },
+            //             body: JSON.stringify({ content: content })
+            //         });
                     
-                    if (response.ok) {
-                        this.messageInput.value = '';
-                        this.autoResize(this.messageInput);
-                        this.loadMessages();
-                    }
-                } catch (error) {
-                    console.error('Error sending message:', error);
-                } finally {
-                    this.sendButton.disabled = false;
-                    this.uploadButton.disabled = false;
-                    this.audioButton.disabled = false;
-                    this.messageInput.focus();
-                    this.typingIndicator.style.display = 'none';
-                }
-            }
+            //         if (response.ok) {
+            //             this.messageInput.value = '';
+            //             this.autoResize(this.messageInput);
+            //             this.loadMessages();
+            //         }
+            //     } catch (error) {
+            //         console.error('Error sending message:', error);
+            //     } finally {
+            //         this.sendButton.disabled = false;
+            //         this.uploadButton.disabled = false;
+            //         this.audioButton.disabled = false;
+            //         this.messageInput.focus();
+            //         this.typingIndicator.style.display = 'none';
+            //     }
+            // }
             
+            // New hardcoded chat function
+            hardcodeChat() {
+                // Clear the welcome message
+                const welcome = this.messagesContainer.querySelector('.welcome-message');
+                if (welcome) {
+                    welcome.remove();
+                }
+
+                this.messages = [
+                    { sender: 'user', content: 'Hi, there’s an overflowing trash bin near my block at Jurong West St 65', type: 'text' },
+                    { sender: 'bot', content: 'Thanks for reporting this! Could you please share a photo of the issue so we can better assist?', type: 'text' },
+                    { sender: 'user', content: '/static/overflowingbin.png', type: 'image' }, // This line is correct for the data
+                    { sender: 'bot', content: 'Got it. Analyzing the image...', type: 'text' },
+                    { sender: 'bot', content: '✅ Issue identified: Overflowing public bin / illegal dumping<br>🏢 Responsible agency: National Environment Agency (NEA)<br>📂 Department: Environmental Public Health Operations<br>Creating case report...', type: 'text' },
+                    { sender: 'bot', content: '✅ Your report has been submitted to NEA.<br>📄 Case ID: NEA-2025-0831-1453<br>🕒 Status: Received<br>📬 You’ll receive updates if the agency responds.', type: 'text' },
+                    { sender: 'user', content: 'Thanks bot!', type: 'text' },
+                    { sender: 'bot', content: 'You\'re welcome! ☺️', type: 'text' }
+                ];
+
+                this.renderMessages();
+                this.scrollToBottom();
+            }
+
+            renderMessages() {
+                const botAvatarImage = `<img src="/static/GovReport_Icon.png" alt="Bot Icon" class="bot-avatar-image">`;
+                const userAvatar = '👤';
+
+                this.messagesContainer.innerHTML = this.messages.map(msg => {
+                    const avatar = msg.sender === 'user' ? userAvatar : botAvatarImage;
+                    const username = msg.sender === 'user' ? 'You' : 'Bot';
+                    const time = this.formatTime(new Date());
+
+                    let messageContentHtml;
+                    if (msg.type === 'image') {
+                        // FIX: Use the image URL from the message data directly
+                        messageContentHtml = `<img src="${msg.content}" class="message-image" alt="Uploaded Image">`; 
+                    } else {
+                        messageContentHtml = `<div class="message-text">${msg.content}</div>`;
+                    }
+
+                    return `
+                        <div class="message ${msg.sender}">
+                            <div class="message-avatar ${msg.sender}">${avatar}</div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <span class="message-username">${username}</span>
+                                    <span class="message-time">${time}</span>
+                                </div>
+                                ${messageContentHtml}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+   
             scrollToBottom() {
                 setTimeout(() => {
                     this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
