@@ -1,6 +1,6 @@
 python-telegram-bot
 flask[async]
-langchain-core
 python-dotenv
 gunicorn
-
+langchain-core
+langchain-ollama
