@@ -4,3 +4,4 @@ python-dotenv
 gunicorn
 langchain-core
 langchain-ollama
+openai-whisper
