@@ -1,7 +1,7 @@
 python-telegram-bot
 flask[async]
 python-dotenv
-gunicorn
+hypercorn
 langchain-core
 langchain-ollama
 openai-whisper
