@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GovReport Chat</title>
+    <style>
+        /* Government-style Color Palette */
+        :root {
+            --gov-blue: #003366;
+            --light-blue: #0055aa;
+            --light-gray: #f5f7fa;
+            --medium-gray: #e0e4e8;
+            --dark-gray: #333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            /* Apply the blue-to-white gradient to the entire page */
+            background: linear-gradient(to bottom, #87CEEB, white);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Glossy Effect Mixin --- */
+        .glossy {
+            position: relative;
+        }
+
+        .glossy::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: inherit;
+            pointer-events: none;
+            background: linear-gradient(
+                to bottom,
+                rgba(255, 255, 255, 0.4) 0%,
+                rgba(255, 255, 255, 0.1) 50%,
+                rgba(0, 0, 0, 0.1) 50%,
+                rgba(0, 0, 0, 0.2) 100%
+            );
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .glossy:hover::before {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+        }
+
+        .chat-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            border-radius: 0;
+            /* Make the container's background transparent to show the body's gradient */
+            background: transparent;
+            overflow: hidden;
+            box-shadow: none;
+        }
+
+        .sidebar {
+            background: transparent;
+            width: 33.33%;
+            padding: 40px 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            border-right: 1px solid rgba(0, 51, 102, 0.3);
+        }
+
+        .sidebar-logo {
+            margin-bottom: 20px;
+        }
+
+        .chat-logo {
+            height: 120px;   /* adjust logo size */
+            width: auto;
+            display: block;
+            margin: 0 auto;
+            margin-bottom: 0px;
+        }
+
+        .sidebar-title, .chat-title { 
+            color: transparent; 
+            font-size: 24px; 
+            font-weight: 700; 
+            margin-top:2px;
+            margin-bottom: 20px; 
+            background: linear-gradient(45deg, var(--gov-blue), var(--light-blue)); 
+            -webkit-background-clip: text; 
+            background-clip: text; 
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); 
+        }
+
+        .sidebar-subtitle { 
+            color: var(--dark-gray); 
+            font-size: 15px; 
+            line-height: 1.5; 
+            margin-bottom: 15px; 
+            width: 400px;
+        }
+
+        .qr-code {
+            width: 220px;   /* bigger QR */
+            height: 220px;
+            border: 1px solid var(--medium-gray);
+            padding: 8px;
+            border-radius: 8px;
+            background-color: #fff;
+            margin: 20px 0;
+            margin-bottom:20px;
+        }
+
+        .main-chat {
+            /* Set the main chat area to have a transparent background */
+            background: transparent;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Update the chat header to be transparent and use a blue border */
+        .chat-header {
+            padding: 25px 30px;
+            /* Changed border to be more transparent */
+            border-bottom: 1px solid rgba(0, 51, 102, 0.3);
+            background: transparent;
+            text-align: center;
+        }
+
+        .chat-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+
+        .telegram-button {
+            background: var(--light-blue);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .telegram-button:hover {
+            background: var(--gov-blue);
+        }
+
+        .chat-title-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; /* space between logo and text */
+        }
+
+        .chat-logo {
+            height: 160px;
+            width: auto;
+        }
+
+
+        .chat-subtitle {
+            color: var(--dark-gray);
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 30px;
+            scroll-behavior: smooth;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Transparent scrollbar for WebKit browsers */
+        .messages-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: transparent; /* Transparent track so gradient shows */
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: rgba(0, 85, 170, 0.4); /* Semi-transparent thumb */
+            border-radius: 10px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 51, 102, 0.6); /* Slightly darker on hover */
+        }
+
+
+        .message {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: messageSlideIn 0.3s ease forwards;
+        }
+
+        @keyframes messageSlideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            /* Removed: justify-content: flex-end; */
+            flex-direction: row-reverse;
+            align-self: flex-end; /* This is what you need to align the user message to the right */
+        }
+
+        .message-content {
+            max-width: 70%;
+        }
+
+        .message.user .message-content {
+            text-align: right;
+        }
+
+        /* --- Updated user message bubble to blue --- */
+        .message.user .message-text, .message.user .message-audio {
+            border-top-right-radius: 4px;
+            border-top-left-radius: 12px;
+            background: var(--gov-blue);
+            color: white; /* changed to white for readability */
+        }
+
+        .message.user .message-image {
+            border-top-right-radius: 4px;
+            border-top-left-radius: 12px;
+            background: none;
+        }
+
+        .message.bot .message-text, .message.bot .message-audio {
+            border-top-left-radius: 4px;
+            border-top-right-radius: 12px;
+            background: #fff;
+            color: var(--dark-gray);
+            border: 1px solid var(--medium-gray);
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .message-avatar.user {
+            background: var(--light-blue);
+        }
+
+        .message-avatar.bot {
+            background: var(--gov-blue);
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .message.user .message-header {
+            justify-content: flex-end;
+        }
+
+        .message-username {
+            color: var(--dark-gray);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .message-time {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .message-text, .message-image, .message-audio {
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 12px 16px;
+            border-radius: 12px;
+            word-wrap: break-word;
+        }
+
+        .message-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .message-audio {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            padding: 8px 12px;
+        }
+
+        .message-input-container {
+            padding: 20px 30px 30px;
+            background: transparent; /* Changed to transparent to show the gradient */
+            /* Changed border to be more transparent */
+            border-top: 1px solid rgba(0, 51, 102, 0.3);
+        }
+
+        .message-input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .message-input {
+            flex: 1;
+            background: var(--light-gray);
+            border: 2px solid var(--medium-gray);
+            border-radius: 20px;
+            padding: 12px 20px;
+            color: var(--dark-gray);
+            font-size: 14px;
+            resize: none;
+            min-height: 44px;
+            max-height: 120px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: var(--light-blue);
+            background: #fff;
+        }
+
+        .message-input::placeholder {
+            color: #999;
+        }
+
+        .send-button, .upload-button, .audio-button {
+            background: var(--light-blue);
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            font-size: 18px;
+        }
+
+        .send-button:hover, .upload-button:hover, .audio-button:hover {
+            transform: scale(1.1);
+        }
+
+        .send-button:active, .upload-button:active, .audio-button:active {
+            transform: scale(0.95);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .upload-button {
+            background: var(--gov-blue);
+            font-size: 20px;
+            padding-bottom: 10px;
+        }
+
+        .audio-button {
+            background: var(--light-blue);
+            font-size: 20px;
+        }
+
+        /* Add this new CSS rule */
+        .message-avatar.bot .bot-avatar-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* or 'cover' depending on your preference */
+            border-radius: 50%;
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 60px 20px;
+            max-width:800px;
+            color: var(--dark-gray);
+            margin: 0px auto;
+        }
+
+        .welcome-message h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--gov-blue);
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: var(--medium-gray);
+            border-radius: 20px;
+            margin: 10px 0;
+            color: #777;
+            font-size: 14px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #777;
+            animation: typingBounce 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
+            40% { opacity: 1; transform: translateY(-8px); }
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                margin: 0;
+                border-radius: 0;
+                height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="sidebar">
+            <div class="sidebar-logo"><img src="{{ url_for('static', filename='GovReport_Transparent_Icon.png') }}" alt="Logo" class="chat-logo">
+</div>
+            <h3 class="sidebar-title">GovReport Telegram</h3>
+            <p class="sidebar-subtitle">
+                Explore more functions and easier access of the service using our Telegram chatbot.
+            </p>
+            <img 
+                src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://t.me/GovReportBot" 
+                alt="QR Code for Telegram Bot" 
+                class="qr-code glossy"
+            >
+            <a href="https://t.me/GovReportBot" target="_blank" class="telegram-button glossy">
+                GovReport Telegram
+            </a>
+        </div>
+        <div class="main-chat">
+            <!-- <div class="chat-header">
+                <div class="chat-title-wrapper">
+                    <h2 class="chat-title">GovReport</h2>
+                </div>
+            </div> -->
+            
+            <div class="messages-container" id="messagesContainer">
+                <div class="welcome-message">
+                    <h2>👋 Welcome to GovReport!</h2>
+                    <p>GovReport helps citizens <b>Recognise</b> issues, <b>Report</b> them easily, and ensures they are <b>Resolved</b> by the right agency and department. Tell us your issue now to make a difference.</p>
+                </div>
+            </div>
+            
+            <div class="typing-indicator" id="typingIndicator">
+                <span>Bot is typing</span>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+            
+            <div class="message-input-container">
+                <div class="message-input-wrapper">
+                    <textarea 
+                        id="messageInput" 
+                        class="message-input" 
+                        placeholder="Type your message..."
+                        rows="1"
+                    ></textarea>
+                    
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                    <button id="uploadButton" class="upload-button glossy" title="Upload Image">
+                        📷
+                    </button>
+                    <button id="audioButton" class="audio-button glossy" title="Record Voice">
+                        🎙️
+                    </button>
+                    
+                    <button id="sendButton" class="send-button glossy">
+                        ➤
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ChatApp {
+            constructor() {
+                this.messages = [];
+                this.mediaRecorder = null;
+                this.audioChunks = [];
+                this.isRecording = false;
+                
+                this.initializeElements();
+                this.bindEvents();
+                this.loadMessages();
+            }
+            
+            initializeElements() {
+                this.messageInput = document.getElementById('messageInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.messagesContainer = document.getElementById('messagesContainer');
+                this.typingIndicator = document.getElementById('typingIndicator');
+                this.imageInput = document.getElementById('imageInput');
+                this.uploadButton = document.getElementById('uploadButton');
+                this.audioButton = document.getElementById('audioButton');
+            }
+            
+            bindEvents() {
+                this.messageInput.addEventListener('input', () => this.autoResize(this.messageInput));
+                this.messageInput.addEventListener('keypress', (e) => this.handleKeyPress(e));
+                this.sendButton.addEventListener('click', () => this.sendMessage());
+                this.uploadButton.addEventListener('click', () => this.imageInput.click());
+                this.imageInput.addEventListener('change', () => this.handleFileUpload());
+                this.audioButton.addEventListener('click', () => this.toggleRecording());
+            }
+            
+            handleKeyPress(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.sendMessage();
+                }
+            }
+            
+            autoResize(textarea) {
+                textarea.style.height = 'auto';
+                textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+            }
+            
+            async loadMessages() {
+                try {
+                    const response = await fetch('/api/messages');
+                    const messages = await response.json();
+                    this.messages = messages;
+                    this.renderMessages();
+                } catch (error) {
+                    console.error('Error loading messages:', error);
+                }
+            }
+            
+    renderMessages() {
+    
+        if (this.messages.length === 0) return;
+    
+    const welcome = this.messagesContainer.querySelector('.welcome-message');
+    if (welcome) {
+        welcome.remove();
+    }
+
+    const filteredMessages = this.messages.filter(msg => {
+        if (msg.type === 'image') {
+            return msg.content.startsWith('/uploads/web_');
+        }
+        if (msg.type === 'audio') {
+            return msg.content.startsWith('/uploads/web_audio_');
+        }
+        return true;
+    });
+    
+    this.messagesContainer.innerHTML = filteredMessages.map(msg => {
+        // Change this line to use an image for the bot avatar
+        const avatar = msg.sender === 'user' ? '👤' : '<img src="/static/GovReport_Icon.png" alt="Bot Icon" class="bot-avatar-image">';
+        const username = msg.sender === 'user' ? 'You' : 'Bot';
+        const time = this.formatTime(msg.timestamp);
+
+        let messageContentHtml;
+        if (msg.type === 'image') {
+            messageContentHtml = `<img src="${msg.content}" class="message-image" alt="Uploaded Image">`;
+        } else if (msg.type === 'audio') {
+            messageContentHtml = `<audio src="${msg.content}" controls class="message-audio"></audio>`;
+        } else {
+            messageContentHtml = `<div class="message-text">${this.escapeHtml(msg.content)}</div>`;
+        }
+
+        return `
+            <div class="message ${msg.sender}">
+                <div class="message-avatar ${msg.sender}">${avatar}</div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="message-username">${username}</span>
+                        <span class="message-time">${time}</span>
+                    </div>
+                    ${messageContentHtml}
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    this.scrollToBottom();
+}
+            async handleFileUpload() {
+                const file = this.imageInput.files[0];
+                if (!file) return;
+
+                this.sendButton.disabled = true;
+                this.uploadButton.disabled = true;
+                this.audioButton.disabled = true;
+                this.typingIndicator.style.display = 'flex';
+
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData,
+                    });
+
+                    if (response.ok) {
+                        this.imageInput.value = '';
+                        this.loadMessages();
+                    }
+                } catch (error) {
+                    console.error('Error uploading image:', error);
+                } finally {
+                    this.sendButton.disabled = false;
+                    this.uploadButton.disabled = false;
+                    this.audioButton.disabled = false;
+                    this.messageInput.focus();
+                    this.typingIndicator.style.display = 'none';
+                }
+            }
+
+            async toggleRecording() {
+                if (this.isRecording) {
+                    this.stopRecording();
+                } else {
+                    await this.startRecording();
+                }
+            }
+
+            async startRecording() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    this.mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/ogg; codecs=opus' });
+                    this.audioChunks = [];
+
+                    this.mediaRecorder.ondataavailable = (event) => {
+                        this.audioChunks.push(event.data);
+                    };
+
+                    this.mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(this.audioChunks, { type: 'audio/ogg' });
+                        this.sendAudio(audioBlob);
+                        this.audioChunks = [];
+                    };
+
+                    this.mediaRecorder.start();
+                    this.isRecording = true;
+                    this.audioButton.style.backgroundColor = 'red';
+                    console.log('Audio recording started.');
+                } catch (error) {
+                    console.error('Error accessing microphone:', error);
+                    alert("Could not access your microphone. Please ensure you have given permission.");
+                }
+            }
+
+            stopRecording() {
+                if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+                    this.mediaRecorder.stop();
+                    this.isRecording = false;
+                    this.audioButton.style.backgroundColor = '';
+                    console.log('Audio recording stopped.');
+                }
+            }
+
+            async sendAudio(audioBlob) {
+                this.sendButton.disabled = true;
+                this.uploadButton.disabled = true;
+                this.audioButton.disabled = true;
+                this.typingIndicator.style.display = 'flex';
+
+                try {
+                    const formData = new FormData();
+                    formData.append('audio', audioBlob, 'voice_message.ogg');
+
+                    const response = await fetch('/api/audio_upload', {
+                        method: 'POST',
+                        body: formData,
+                    });
+
+                    if (response.ok) {
+                        this.loadMessages();
+                    }
+                } catch (error) {
+                    console.error('Error uploading audio:', error);
+                } finally {
+                    this.sendButton.disabled = false;
+                    this.uploadButton.disabled = false;
+                    this.audioButton.disabled = false;
+                    this.messageInput.focus();
+                    this.typingIndicator.style.display = 'none';
+                }
+            }
+            
+            async sendMessage() {
+                const content = this.messageInput.value.trim();
+                if (!content) return;
+                
+                this.sendButton.disabled = true;
+                this.uploadButton.disabled = true;
+                this.audioButton.disabled = true;
+                this.typingIndicator.style.display = 'flex';
+                
+                try {
+                    const response = await fetch('/api/messages', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content: content })
+                    });
+                    
+                    if (response.ok) {
+                        this.messageInput.value = '';
+                        this.autoResize(this.messageInput);
+                        this.loadMessages();
+                    }
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                } finally {
+                    this.sendButton.disabled = false;
+                    this.uploadButton.disabled = false;
+                    this.audioButton.disabled = false;
+                    this.messageInput.focus();
+                    this.typingIndicator.style.display = 'none';
+                }
+            }
+            
+            scrollToBottom() {
+                setTimeout(() => {
+                    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                }, 100);
+            }
+            
+            formatTime(timestamp) {
+                return new Date(timestamp).toLocaleTimeString([], { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+            }
+            
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            new ChatApp();
+        });
+    </script>
+</body>
+</html>
